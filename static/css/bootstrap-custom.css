@@ -1,0 +1,78 @@
+.btn-file {
+  position: relative;
+  overflow: hidden;
+}
+.btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  background: red;
+  cursor: inherit;
+  display: block;
+}
+input[readonly] {
+  background-color: white !important;
+  cursor: text !important;
+}
+
+.btn-clear {
+  color: #737373;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 0;
+}
+.btn-clear:hover {
+  color: #000000;
+}
+.btn-clear:active,
+.btn-clear.active,
+.btn-clear:focus:active,
+.open > .dropdown-toggle.btn-clear {
+  color: #000000;
+}
+.btn-clear:active:hover,
+.btn-clear.active:hover,
+.open > .dropdown-toggle.btn-clear:hover,
+.btn-clear:active:focus,
+.btn-clear.active:focus,
+.open > .dropdown-toggle.btn-clear:focus,
+.btn-clear:active.focus,
+.btn-clear.active.focus,
+.open > .dropdown-toggle.btn-clear.focus {
+  color: #000000;
+}
+.btn-clear.disabled,
+.btn-clear[disabled],
+fieldset[disabled] .btn-clear,
+.btn-clear.disabled:hover,
+.btn-clear[disabled]:hover,
+fieldset[disabled] .btn-clear:hover,
+.btn-clear.disabled:focus,
+.btn-clear[disabled]:focus,
+fieldset[disabled] .btn-clear:focus,
+.btn-clear.disabled.focus,
+.btn-clear[disabled].focus,
+fieldset[disabled] .btn-clear.focus,
+.btn-clear.disabled:active,
+.btn-clear[disabled]:active,
+fieldset[disabled] .btn-clear:active,
+.btn-clear.disabled.active,
+.btn-clear[disabled].active,
+fieldset[disabled] .btn-clear.active {
+  color: #999999;
+}
+.btn-clear .badge {
+  color: #333;
+}
+.list-group-scrollable {
+  max-height: 245px;
+  overflow-y:scroll;
+}
