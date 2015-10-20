@@ -4,7 +4,7 @@ Serval-Web
 Serval-Web serves as a web-frontend to control your serval daemon.
 Python is required since it is based on Flask.
 
-To run the server just start your serval daemon and set the correct path to it in servarwrapper.yp
+To run the server just start your serval daemon and set the correct path to it in servalwrapper.py
 
 Note that this is a first draft and is still subject to change.
 
