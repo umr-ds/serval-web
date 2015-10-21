@@ -3,6 +3,18 @@
 
     <script type=text/javascript>
 
+        function submit_message() {
+            var serval_id = $('#serval_id').html();
+            var selected_peer = $('#sel_peers').val();
+            var message = $('#inp_message');
+            var req = send_message(serval_id, selected_peer, message.val());
+            req.success(function () {
+                message.val('');
+                $("#btn_sendmessage").attr('disabled', 'disabled');
+                reload_message_list();
+            });
+        }
+
         function reload_message_list() {
             var selected_peer = $('select[name="sel_peers"]').val();
             if (selected_peer == "" || selected_peer == null) {
@@ -18,11 +30,11 @@
                             if (messages[i][8] != null) {
 
                                 lg_messages.append(
-                                        '<li class="list-group-item' + (messages[i][0] == "<" ? ' list-group-item-info' : '') + '">' +
-                                        messages[i][8] + ' ' +
+                                        '<a class="list-group-item' + (messages[i][0] == "<" ? ' list-group-item-info' : '') + '">' +
+                                        convert_unix_timestamp(messages[i][8]) + ' ' +
                                         messages[i][0] + ' ' +
                                         messages[i][5] +
-                                        '</li>'
+                                        '</a>'
                                 );
                             }
                         }
@@ -136,8 +148,10 @@
                 }
             });
 
-            $("#inp_message").keyup(function () {
-                if ($("#inp_message").val() == "") {
+            $("#inp_message").keyup(function (e) {
+                if (e.keyCode == 13) {
+                    submit_message();
+                }else if ($(this).val() == "") {
                     $("#btn_sendmessage").attr('disabled', 'disabled');
                 } else {
                     $("#btn_sendmessage").removeAttr('disabled');
@@ -149,15 +163,7 @@
             });
 
             $("#btn_sendmessage").click(function () {
-                var serval_id = $('#serval_id').html();
-                var selected_peer = $('#sel_peers').val();
-                var message = $('#inp_message');
-                var req = send_message(serval_id, selected_peer, message.val());
-                req.success(function() {
-                    message.val('');
-                    $("#btn_sendmessage").attr('disabled', 'disabled');
-                    reload_message_list();
-                });
+                submit_message();
             });
 
             $("#btn_publishfile").click(function () {
@@ -213,7 +219,7 @@
                     </div>
                 </div>
 
-                <div class="col-lg-4 col-md-4 col-sm-4">
+                <div class="col-lg-4 col-md-4 col-sm-4" hidden>
                     <div class="panel panel-primary">
                         <div class="panel-heading">
                             <h3 class="panel-title">Contacs</h3>

@@ -29,4 +29,3 @@ function send_message(sender, recipient, message) {
         processData: false
     });
 }
-

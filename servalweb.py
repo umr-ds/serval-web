@@ -8,9 +8,15 @@ from flask import send_file
 from servalwrapper import ServalWrapper
 import requests
 import io
+import sys
 
 app = Flask(__name__)
 servald = ServalWrapper()
+try:
+    servald.get_status();
+except:
+    print("servald not running!")
+    sys.exit()
 
 
 def parse_request_data(request_data):
@@ -20,13 +26,8 @@ def parse_request_data(request_data):
 
 @app.route('/')
 def serval_web_client():
-    serval_id = None
-    peers = None
-    try:
-        serval_id = servald.get_id_self();
-        peers = servald.get_id_allpeers();
-    except:
-        print "Servald not running"
+    serval_id = servald.get_id_self()
+    peers = servald.get_id_allpeers()
     return render_template("index.html", id=serval_id, peers=peers)
 
 
