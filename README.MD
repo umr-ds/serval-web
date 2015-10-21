@@ -5,7 +5,8 @@ Serval-Web serves as a web-frontend to control your serval daemon.
 Python is required since it is based on Flask.
 
 To run the server just start your serval daemon and set the correct path to it in servalwrapper.py.
-You have to run the Flask-Server under the same permissions as the serval daemon, since some features require the command-line interface.
+You have to run the Flask-Server under the same permissions as the serval daemon, since some features require the command-line interface. To enable the usage of the RESTful api in your serval daemon add the following line to its config:
+api.restful.users.peter.password=venkman
 
 Note that this is a first draft and is still subject to change.
 
