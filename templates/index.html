@@ -82,7 +82,7 @@
                 files.append(
                         '<a class="list-group-item group-btn" id="' + file_name + '" name="' + file_name + '">' +
                         '<div class="input-group">' +
-                        '<form id="file_' + file_hash + '" class="list-group-link" action="/restful/rhizome/' + file_id + '/' + file_name + '" method="GET" style="cursor: hand;">' +
+                        '<form id="file_' + file_id + '" class="list-group-link" action="/restful/rhizome/' + file_id + '/' + file_name + '" method="GET" style="cursor: hand;">' +
                         '<h5 class="list-group-item-heading unselectable">' +
                         (file_name != "" ? file_name : "unnamed_file") +
                         '</h5>' +
@@ -92,15 +92,15 @@
                         '</h6>' +
                         '</form>' +
                         '<span class="input-group-btn">' +
-                        '<input class="btn btn-clear" type="button" id="btn_delete_' + file_hash + '" name="btn_delete_' + file_hash + '" value="X">' +
+                        '<input class="btn btn-clear" type="button" id="btn_delete_' + file_id + '" name="btn_delete_' + file_id + '" value="X">' +
                         '</span>' +
                         '</div>' +
                         '</a>'
                 );
-                $("#file_" + file_hash).click(function () {
+                $("#file_" + file_id).click(function () {
                     $(this).submit();
                 });
-                $("#btn_delete_" + file_hash).click(function () {
+                $("#btn_delete_" + file_id).click(function () {
                     var result = confirm("Do you really want to delete " + file_name + "?");
                     if (result) {
                         var req = delete_file(file_hash);
