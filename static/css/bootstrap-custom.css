@@ -100,3 +100,7 @@ fieldset[disabled] .btn-clear.active {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.col-centered {
+  float: none;
+  margin: 0 auto;
+}
