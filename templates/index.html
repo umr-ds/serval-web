@@ -3,60 +3,74 @@
 
     <script type=text/javascript>
 
-        function submit_message() {
+        var selected_peer;
+        var known_peers = [];
+        var known_files = [];
+        var last_update;
+
+        function submitMessage() {
             var serval_id = $('#serval_id').html();
-            var selected_peer = $('#sel_peers').val();
             var message = $('#inp_message');
-            var req = send_message(serval_id, selected_peer, message.val());
+            var req = send_message(serval_id, selected_peer.dataset.peer, message.val());
             req.success(function () {
                 message.val('');
                 $("#btn_sendmessage").attr('disabled', 'disabled');
-                reload_message_list();
+                reloadMessagelist(selected_peer);
             });
         }
 
-        function reload_message_list() {
-            var selected_peer = $('select[name="sel_peers"]').val();
-            if (selected_peer == "" || selected_peer == null) {
+        function reloadMessagelist(selected_peer_element) {
+            if (selected_peer_element == null) {
                 console.log("Could not load messages: No peer selected");
                 return;
             }
-            var req = reload_messages(selected_peer, $('div[name="serval_id"]').html());
+            if (selected_peer != null) {
+                selected_peer.classList.remove("active");
+            }
+            selected_peer = selected_peer_element;
+            selected_peer_element.classList.add("active");
+            var peer = selected_peer_element.dataset.peer;
+            var req = reload_messages(peer, $('div[name="serval_id"]').html());
             req.success(function (data) {
                         var lg_messages = $("#lg_messages");
                         lg_messages.empty();
                         var messages = data["rows"];
-                        for (var i in messages) {
+                        for (var i = messages.length - 1; i >= 0; i--) {
                             if (messages[i][8] != null) {
-
                                 lg_messages.append(
-                                        '<a class="list-group-item' + (messages[i][0] == "<" ? ' list-group-item-info' : '') + '">' +
-                                        convert_unix_timestamp(messages[i][8]) + ' ' +
-                                        messages[i][0] + ' ' +
-                                        messages[i][5] +
-                                        '</a>'
+                                    '<div>' +
+                                        '<div class="list-group-timestamp">' + convertUnixTimestamp(messages[i][8]) + '</div>' +
+                                        '<a class="list-group-item' + (messages[i][0] == "<" ? ' list-group-item-info' : ' outgoing-message') + '">' +
+                                            messages[i][5] +
+                                        '</a>' +
+                                    '</div>'
                                 );
                             }
                         }
+                        lg_messages.scrollTop(lg_messages.prop("scrollHeight"));
                     }
             );
         }
 
-        function reload_peers(data) {
+        function reloadPeers(data) {
+            var previous_peerlist = known_peers;
+
             if (data.peers != null) {
-                var peers = $('select[name="sel_peers"]');
-                var selected_peer = peers.val();
-                $('#sel_peers option').remove();
+                var contacts_list = $('#lg_peers')
                 $.each(data.peers, function (index, peer) {
-                    $("select#sel_peers").append(
-                            "<option value=" + peer + ">" + peer + "</option>"
-                    );
+                    if ($.inArray(peer, previous_peerlist) == -1) {
+                        contacts_list.append(
+                            '<a id="contact_' + peer + '" name="contact_' + peer + '" data-peer="' + peer + '" class="list-group-item list-group-item-ellipsis unselectable" onclick="reloadMessagelist(this)">' +
+                                '<span>' + peer + '</span>' +
+                            '</a>'
+                        );
+                    }
                 });
-                peers.val(selected_peer);
+                known_peers = data.peers;
             }
         }
 
-        function create_file_entry(bundle) {
+        function createFileentry(bundle) {
             if (bundle[2] != "MeshMS2") {
                 var files = $("#lg_files");
                 var file_id = bundle[3];
@@ -66,14 +80,14 @@
                 var file_type = bundle[2];
 
                 files.append(
-                        '<a class="list-group-item group-btn">' +
+                        '<a class="list-group-item group-btn" id="' + file_name + '" name="' + file_name + '">' +
                         '<div class="input-group">' +
-                        '<form id="file_' + file_hash + '" action="/restful/rhizome/' + file_id + '/' + file_name + '" method="GET">' +
-                        '<h5 class="list-group-item-heading">' +
+                        '<form id="file_' + file_hash + '" class="list-group-link" action="/restful/rhizome/' + file_id + '/' + file_name + '" method="GET" style="cursor: hand;">' +
+                        '<h5 class="list-group-item-heading unselectable">' +
                         (file_name != "" ? file_name : "unnamed_file") +
                         '</h5>' +
-                        '<h6 class="list-group-item-text">' +
-                        'Size: ' + file_size + ' Byte, ' +
+                        '<h6 class="list-group-item-text unselectable">' +
+                        'Size: ' + byteToString(file_size) + ', ' +
                         'Type: ' + file_type +
                         '</h6>' +
                         '</form>' +
@@ -87,22 +101,28 @@
                     $(this).submit();
                 });
                 $("#btn_delete_" + file_hash).click(function () {
-                    var req = delete_file(file_hash);
-                    req.complete(function() {
-                        reload_file_list();
-                    });
+                    var result = confirm("Do you really want to delete " + file_name + "?");
+                    if (result) {
+                        var req = delete_file(file_hash);
+                        req.complete(function () {
+                            reloadFilelist();
+                        });
+                    }
                 });
             }
         }
 
-        function reload_file_list() {
+        function reloadFilelist() {
             var req = reload_files();
             req.success(function (data) {
                 $('#lg_files').empty();
                 var bundles = data["rows"];
                 for (var i in bundles) {
-                    create_file_entry(bundles[i]);
+                    if($.inArray(bundles[i][3], known_files) == -1) {
+                        createFileentry(bundles[i]);
+                    }
                 }
+                known_files[known_files.length] = bundles[i][3];
             });
         }
 
@@ -114,13 +134,12 @@
                     contentType: "application/json; charset=utf-8",
                     data: {peer: $('#sel_peers').val()},
                     success: function (data) {
-                        reload_peers(data);
-                        reload_message_list();
-                        reload_file_list();
+                        reloadPeers(data);
+                        reloadMessagelist(selected_peer);
+                        reloadFilelist();
                     },
                     complete: function () {
                         setTimeout(worker, 5000);
-                        //Schedule the next request when the current one's complete
                     },
                     error: function (xhr, status, error) {
                         console.log(JSON.parse(xhr.responseText));
@@ -150,7 +169,7 @@
 
             $("#inp_message").keyup(function (e) {
                 if (e.keyCode == 13) {
-                    submit_message();
+                    submitMessage();
                 }else if ($(this).val() == "") {
                     $("#btn_sendmessage").attr('disabled', 'disabled');
                 } else {
@@ -159,20 +178,37 @@
             });
 
             $("#sel_peers").change(function () {
-                reload_message_list();
+                reloadMessagelist();
             });
 
             $("#btn_sendmessage").click(function () {
-                submit_message();
+                submitMessage();
             });
 
             $("#btn_publishfile").click(function () {
                 var file = ($("#btn_selectfile")[0].files[0]);
                 var req = publish_file(file);
                 req.success(function () {
-                    reload_file_list();
+                    reloadFilelist();
                 });
             });
+
+
+            $("#inp_filename").keyup(function () {
+                var searchstr = $(this).val();
+                $('#lg_files').children('a').each( function () {
+                   var id = this.id;
+                   if (this.id.toLowerCase().indexOf(searchstr) >= 0) {
+                       $(this).show();
+                   } else {
+                       $(this).hide();
+                   }
+                });
+            });
+
+            $("#btn_clearsearchfile").click(function () {
+                $("#inp_filename").val('');
+            })
         });
     </script>
 
@@ -185,7 +221,8 @@
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav" id="serval_tabs" name="serval_tabs" role="tablist">
-                    <li role="presentation" class="active"><a href="#meshms" data-toggle="tab">MeshMS</a></li>
+                    <li role="presentation" class="active"><a href="#info" data-toggle="tab">Info</a></li>
+                    <li role="presentation"><a href="#meshms" data-toggle="tab">MeshMS</a></li>
                     <li role="presentation"><a href="#rhizome" data-toggle="tab">Rhizome</a></li>
                     <li role="presentation"><a href="#keyring" data-toggle="tab">Keyring</a></li>
                 </ul>
@@ -196,41 +233,49 @@
     <div class="container" role="main">
         <div id="serval_id" name="serval_id" hidden>{{ id }}</div>
         <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="meshms">
-                <div class="col-lg-8 col-md-8 col-sm-8">
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">Messages</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="form-group-sm ">
-                                <label for="sel_peers">Peer</label>
-                                <select class="form-control" id="sel_peers" name="sel_peers"></select>
-                                <label for="messages">Conversation</label>
-                                <div class="input-group" id="messages" name="messages">
-                                    <input class="form-control" type="text" id="inp_message" name="inp_message">
-                                    <span class="input-group-btn">
-                                        <input class="btn btn-sm btn-default" type="button" id="btn_sendmessage" name="btn_sendmessage" value="Send" disabled="true">
-                                    </span>
-                                </div>
-                                <div class="list-group list-group-scrollable" id="lg_messages" name="lg_messages"></div>
-                            </div>
-                        </div>
+            <div role="tabpanel" class="tab-pane active" id="info">
+                <div class="col-lg-7 col-md-7 col-sm-7 col-centered">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Info</h3>
+                    </div>
+                    <div class="panel-body">
+                        <ul class="list-group">
+            <li class="list-group-item text-right list-group-item-ellipsis"><span class="pull-left"><strong>SID</strong></span>{{ id }}</li>
+            <li class="list-group-item text-right"><span class="pull-left"><strong>Last seen</strong></span> Yesterday</li>
+            <li class="list-group-item text-right"><span class="pull-left"><strong>Real name</strong></span> Joseph Doe</li>
+
+          </ul>
                     </div>
                 </div>
-
-                <div class="col-lg-4 col-md-4 col-sm-4" hidden>
+                    </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="meshms">
+                <div class="col-lg-3 col-md-3 col-sm-3">
                     <div class="panel panel-primary">
                         <div class="panel-heading">
                             <h3 class="panel-title">Contacs</h3>
                         </div>
                         <div class="panel-body">
                             <div class="form-group-sm ">
-                                <div class="list-group list-group-scrollable" id="lg_messages" name="lg_messages">
-                                    <a class="list-group-item">
-                                        Stefan Schulz
-                                        <span class="badge">3</span>
-                                    </a>
+                                <div class="list-group list-group-scrollable" id="lg_peers" name="lg_peers"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-9 col-md-9 col-sm-9">
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Messages</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="form-group-sm ">
+                                <div class="list-group list-group-scrollable" id="lg_messages" name="lg_messages"></div>
+                                <div class="input-group" id="messages" name="messages">
+                                    <input class="form-control" type="text" id="inp_message" name="inp_message">
+                                    <span class="input-group-btn">
+                                        <input class="btn btn-sm btn-default" type="button" id="btn_sendmessage" name="btn_sendmessage" value="Send" disabled="true">
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -245,19 +290,24 @@
                     <div class="panel-body">
                         <div class="form-group-sm">
                             <div class="col-sm4" id="file_list" name="file_list">
+                                <div class="input-group" id="search" name="search">
+                                    <input class="form-control" type="text" id="inp_filename" name="inp_filename" placeholder="Search for a file...">
+                                    <span class="input-group-btn">
+                                        <input class="btn btn-sm btn-default" type="button" id="btn_clearsearchfile" name="btn_clearsearchfile" value="Clear">
+                                    </span>
+                                </div>
+                                <div class="list-group list-group-scrollable" id="lg_files" name="lg_files"></div>
                                 <form class="input-group" id="publish_file" name="publish_file" method="POST" enctype="multipart/form-data">
                                     <span class="input-group-btn">
                                         <span class="btn btn-sm btn-primary btn-file">
                                             Browse<input id="btn_selectfile" name="btn_selectfile" type="file">
                                         </span>
                                     </span>
-                                    <input id="txt_filename" name="txt_filename" type="text" class="form-control" readonly>
+                                    <input id="txt_filename" name="txt_filename" type="text" class="form-control" placeholder="Select a file to publish" readonly>
                                     <span class="input-group-btn">
                                         <input class="btn btn-sm btn-default" type="button" id="btn_publishfile" name="btn_publishfile" value="Publish" disabled="true">
                                     </span>
                                 </form>
-                                <div class="list-group list-group-scrollable" id="lg_files" name="lg_files">
-                                </div>
                             </div>
                         </div>
                     </div>
