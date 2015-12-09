@@ -1,7 +1,7 @@
 import subprocess
 import string
 
-SERVALDBINARY="servald"
+SERVALDBINARY="/Users/ruby/git/serval-dna/servald"
 
 
 class ServalWrapper(object):

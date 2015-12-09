@@ -11,6 +11,19 @@ function reload_messages(sender, recipient) {
     });
 }
 
+function load_new_messages(sender, recipient, token) {
+    var username = "peter";
+    var password = "venkman";
+    return $.ajax({
+        type: "GET",
+        url: "http://localhost:4110/restful/meshms/" + recipient + "/" + sender + "/newsince/" + token + "/messagelist.json",
+        dataType: "json",
+        headers: {
+            "Authorization": "Basic " + btoa(username + ":" + password)
+        }
+    });
+}
+
 function send_message(sender, recipient, message) {
     var username = 'peter';
     var password = 'venkman';

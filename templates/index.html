@@ -5,8 +5,9 @@
 
         var selected_peer;
         var known_peers = [];
-        var known_files = [];
-        var last_update;
+        var file_count;
+        var show_file_notification = false;
+        var last_messages;
 
         function submitMessage() {
             var serval_id = $('#serval_id').html();
@@ -105,6 +106,9 @@
                     if (result) {
                         var req = delete_file(file_hash);
                         req.complete(function () {
+                            if(file_count) {
+                                file_count -= 1;
+                            }
                             reloadFilelist();
                         });
                     }
@@ -117,12 +121,16 @@
             req.success(function (data) {
                 $('#lg_files').empty();
                 var bundles = data["rows"];
+                if (bundles.length > file_count) {
+                    $('#div_file_alert').append(create_alert("There are new files in your Rhizome store"));
+                }
                 for (var i in bundles) {
-                    if($.inArray(bundles[i][3], known_files) == -1) {
+                    if(bundles[i]) {
                         createFileentry(bundles[i]);
                     }
                 }
-                known_files[known_files.length] = bundles[i][3];
+                console.log(file_count + " " + bundles.length);
+                file_count = bundles.length;
             });
         }
 
@@ -139,6 +147,7 @@
                         reloadFilelist();
                     },
                     complete: function () {
+                        show_file_notification = true;
                         setTimeout(worker, 5000);
                     },
                     error: function (xhr, status, error) {
@@ -146,7 +155,6 @@
                     }
                 });
             })();
-
 
             $("#sel_peers").prop("selectedIndex", -1);
 
@@ -286,6 +294,7 @@
                     </div>
                     <div class="panel-body">
                         <div class="form-group-sm">
+                            <div id="div_file_alert"></div>
                             <div class="col-sm4" id="file_list" name="file_list">
                                 <div class="input-group" id="search" name="search">
                                     <input class="form-control" type="text" id="inp_filename" name="inp_filename" placeholder="Search for a file...">

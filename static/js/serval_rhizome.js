@@ -11,6 +11,19 @@ function reload_files() {
     });
 }
 
+function load_new_files(token) {
+        var url = "http://" + window.location.hostname + ":4110/restful/rhizome/newsince/" + token + "/bundlelist.json";
+    var username = 'peter';
+    var password = 'venkman';
+    return $.ajax({
+        type: "GET",
+        url: url,
+        headers: {
+            "Authorization": "Basic " + btoa(username + ":" + password)
+        }
+    });
+}
+
 function publish_file(file) {
     var url = "http://" + window.location.hostname + ":4110/restful/rhizome/insert";
     var username = 'peter';
