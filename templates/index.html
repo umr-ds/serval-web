@@ -102,7 +102,7 @@
                     $(this).submit();
                 });
                 $("#btn_delete_" + file_id).click(function () {
-                    var result = confirm("Do you really want to delete " + file_name + "?");
+                    var result = bootbox.confirm("Do you really want to delete " + file_name + "?", function(result) {
                     if (result) {
                         var req = delete_file(file_hash);
                         req.complete(function () {
@@ -112,7 +112,7 @@
                             reloadFilelist();
                         });
                     }
-                });
+                    });});
             }
         }
 
@@ -122,7 +122,7 @@
                 $('#lg_files').empty();
                 var bundles = data["rows"];
                 if (bundles.length > file_count) {
-                    $('#div_file_alert').append(create_alert("There are new files in your Rhizome store"));
+                    $('#infobox').append(create_alert("<strong>Rhizome</strong> There are new files in your Rhizome store."));
                 }
                 for (var i in bundles) {
                     if(bundles[i]) {
@@ -220,7 +220,7 @@
         });
     </script>
 
-    <nav class="navbar navbar-default">
+    <nav class="navbar navbar-static-top navbar-default">
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">
@@ -237,7 +237,6 @@
             </div>
         </div>
     </nav>
-
     <div class="container" role="main">
         <div id="serval_id" name="serval_id" hidden>{{ id }}</div>
         <div class="tab-content">
@@ -259,7 +258,7 @@
                 <div class="col-lg-3 col-md-3 col-sm-3">
                     <div class="panel panel-primary">
                         <div class="panel-heading">
-                            <h3 class="panel-title">Contacs</h3>
+                            <h3 class="panel-title">Contacts</h3>
                         </div>
                         <div class="panel-body">
                             <div class="form-group-sm ">
@@ -294,7 +293,6 @@
                     </div>
                     <div class="panel-body">
                         <div class="form-group-sm">
-                            <div id="div_file_alert"></div>
                             <div class="col-sm4" id="file_list" name="file_list">
                                 <div class="input-group" id="search" name="search">
                                     <input class="form-control" type="text" id="inp_filename" name="inp_filename" placeholder="Search for a file...">
@@ -322,5 +320,6 @@
             <div role="tabpanel" class="tab-pane" id="keyring">keys</div>
         </div>
     </div>
+    <div id="infobox" class="navbar-fixed-bottom">
     </div>
 {% endblock %}

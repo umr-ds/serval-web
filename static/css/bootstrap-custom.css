@@ -104,3 +104,6 @@ fieldset[disabled] .btn-clear.active {
   float: none;
   margin: 0 auto;
 }
+.alert-info {
+  margin-bottom:0;
+}
