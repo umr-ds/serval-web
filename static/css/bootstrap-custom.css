@@ -107,3 +107,13 @@ fieldset[disabled] .btn-clear.active {
 .alert-info {
   margin-bottom:0;
 }
+.list-group-item-text.text-input {
+  margin-right: 1em;
+}
+.list-group-item-text.text-input[disabled] {
+  color: #0f0f0f;
+  border: 0px;
+}
+.list-group-item-text.text-input[enabled] {
+
+}

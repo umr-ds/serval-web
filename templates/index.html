@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block content %}
 
-    <script type=text/javascript>
+    <script type=text/javascript xmlns="http://www.w3.org/1999/html">
 
         var selected_peer;
         var known_peers = [];
@@ -38,12 +38,12 @@
                         for (var i = messages.length - 1; i >= 0; i--) {
                             if (messages[i][8] != null) {
                                 lg_messages.append(
-                                    '<div>' +
+                                        '<div>' +
                                         '<div class="list-group-timestamp">' + convertUnixTimestamp(messages[i][8]) + '</div>' +
                                         '<a class="list-group-item' + (messages[i][0] == "<" ? ' list-group-item-info' : ' outgoing-message') + '">' +
-                                            messages[i][5] +
+                                        messages[i][5] +
                                         '</a>' +
-                                    '</div>'
+                                        '</div>'
                                 );
                             }
                         }
@@ -60,9 +60,9 @@
                 $.each(data.peers, function (index, peer) {
                     if ($.inArray(peer, previous_peerlist) == -1) {
                         contacts_list.append(
-                            '<a id="contact_' + peer + '" name="contact_' + peer + '" data-peer="' + peer + '" class="list-group-item list-group-item-ellipsis unselectable" onclick="reloadMessagelist(this)">' +
+                                '<a id="contact_' + peer + '" name="contact_' + peer + '" data-peer="' + peer + '" class="list-group-item list-group-item-ellipsis unselectable" onclick="reloadMessagelist(this)">' +
                                 '<span>' + peer + '</span>' +
-                            '</a>'
+                                '</a>'
                         );
                     }
                 });
@@ -80,19 +80,21 @@
                 var file_type = bundle[2];
 
                 files.append(
-                        '<a class="list-group-item group-btn" id="' + file_name + '" name="' + file_name + '">' +
+                        '<a class="list-group-item list-group-item-ellipsis group-btn" id="' + file_name + '" name="' + file_name + '">' +
                         '<div class="input-group">' +
                         '<form id="file_' + file_id + '" class="list-group-link" action="/restful/rhizome/' + file_id + '/' + file_name + '" method="GET" style="cursor: hand;">' +
-                        '<h5 class="list-group-item-heading unselectable">' +
+                        '<h5 class="list-group-item-heading list-group-item-ellipsis unselectable">' +
                         (file_name != "" ? file_name : "unnamed_file") +
                         '</h5>' +
                         '<h6 class="list-group-item-text unselectable">' +
                         'Size: ' + byteToString(file_size) + ', ' +
                         'Type: ' + file_type +
-                        '</h6>' +
+                        '</h6> ' +
                         '</form>' +
                         '<span class="input-group-btn">' +
-                        '<input class="btn btn-clear" type="button" id="btn_delete_' + file_id + '" name="btn_delete_' + file_id + '" value="X">' +
+                        '<button class="btn btn-clear" type="button" id="btn_delete_' + file_id + '" name="btn_delete_' + file_id + '">' +
+                                 '<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>' +
+                        '</button>' +
                         '</span>' +
                         '</div>' +
                         '</a>'
@@ -101,22 +103,25 @@
                     $(this).submit();
                 });
                 $("#btn_delete_" + file_id).click(function () {
-                    bootbox.confirm("Do you really want to delete " + file_name + "?", function(result) {
-                    if (result) {
-                        var req = delete_file(file_hash);
-                        req.complete(function () {
-                            if(file_count) {
-                                file_count -= 1;
-                            }
-                            reloadFilelist();
-                        });
-                    }
-                    });});
+                    bootbox.confirm("Do you really want to delete " + file_name + "?", function (result) {
+                        if (result) {
+                            var req = delete_file(file_hash);
+                            req.complete(function () {
+                                if (file_count) {
+                                    file_count -= 1;
+                                }
+                                reloadFilelist();
+                            });
+                        }
+                    });
+                });
             }
         }
 
-        function alertTimeout(wait){
-            setTimeout(function(){$('#infobox').children('.alert:first-child').remove();}, wait);
+        function alertTimeout(wait) {
+            setTimeout(function () {
+                $('#infobox').children('.alert:first-child').remove();
+            }, wait);
         }
 
         function reloadFilelist() {
@@ -126,17 +131,78 @@
                 var bundles = data["rows"];
                 if (bundles.length > file_count) {
                     createAutoClosingAlert('rhizome_alert',
-                        '<strong>Rhizome</strong> There are new files in your Rhizome store.',
-                        '#infobox',
-                        5000
+                            '<strong>Rhizome</strong> There are new files in your Rhizome store.',
+                            '#infobox',
+                            5000
                     );
                 }
                 for (var i in bundles) {
-                    if(bundles[i]) {
+                    if (bundles[i]) {
                         createFileentry(bundles[i]);
                     }
                 }
                 file_count = bundles.length;
+            });
+        }
+
+        function enableIdentityEditing() {
+            console.log("HALLO")
+            //$(this).parent().parent().find(".disabled").prop('disabled', false);
+            $(this).find('span').toggleClass('glyphicon-edit').toggleClass('glyphicon-check');
+            //$(this).off('click');
+            //$(this).click(function() {disableIdentityEditing()});
+        }
+
+        function disableIdentityEditing() {
+            //$(this).off('click');
+            //$(this).parent().parent().find(".disabled").prop('disabled', true);
+            $(this).find('.glyphicon-check').removeClass('glyphicon-check').addClass('glyphicon-edit');
+            //$(this).click(function() {enableIdentityEditing()});
+        }
+
+        function reloadIdentities() {
+            var req = load_keyring();
+            req.success(function (data) {
+                var lg_identities = $("#lg_identities");
+                lg_identities.empty();
+                var identities = data["rows"];
+                for (var i = identities.length - 1; i >= 0; i--) {
+                    var sid = identities[i][0];
+                    var did = identities[i][1];
+                    var name = identities[i][2];
+
+                    var did_field = "";
+                    //if(param_is_valid(did)) {
+                        did_field = 'DID: <input class="list-group-item-text text-input" type="text" placeholder="Not set" value="' + did + '" disabled>';
+                    //}
+
+                    var name_field = "";
+                    //if(param_is_valid(name)) {
+                        name_field = 'Name: <input class="list-group-item-text text-input" type="text" placeholder="Not set" value="' + name + '" disabled>';
+                    //}
+
+                    lg_identities.append(
+                        '<a class="list-group-item group-btn" id="' + sid + '" name="' + sid + '">' +
+                            '<div class="input-group">' +
+                                '<div class="list-group-link list-group-item-ellipsis">' +
+                                    '<h5 class="list-group-item-heading list-group-item-ellipsis">' +
+                                        'SID: ' + sid +
+                                    '</h5>' +
+                                    '<h6 class=" unselectable">' +
+                                        did_field + name_field +
+                                    '</h6> ' +
+
+                                '</div>' +
+                                '<span class="input-group-btn">' +
+                                    '<button class="btn btn-clear" type="button" id="btn_toggle_' + sid + '" name="btn_toggle_' + sid + '">' +
+                                        '<span class="glyphicon glyphicon-edit" aria-hidden="true"></span>' +
+                                    '</button>' +
+                                '</span>' +
+                            '</div>' +
+                        '</a>'
+                    );
+                    $("#btn_toggle_" + sid).click(function() {enableIdentityEditing();});
+                }
             });
         }
 
@@ -151,6 +217,7 @@
                         reloadPeers(data);
                         reloadMessagelist(selected_peer);
                         reloadFilelist();
+                        reloadIdentities();
                     },
                     complete: function () {
                         show_file_notification = true;
@@ -164,27 +231,28 @@
 
             $("#sel_peers").prop("selectedIndex", -1);
 
-            $(document).on('change', '.btn-file :file', function() {
+            $(document).on('change', '.btn-file :file', function () {
                 var input = $(this);
                 var label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
                 input.trigger('fileselect', label);
             });
 
-            $('.btn-file :file').on('fileselect', function(event, label) {
+            $('.btn-file :file').on('fileselect', function (event, label) {
                 var input = $('#txt_filename');
                 var btn_publish = $('#btn_publishfile');
-                if( input.length ) {
+                if (input.length) {
                     input.val(label);
                     btn_publish.removeAttr('disabled');
                 } else {
-                    btn_publish.attr('disabled', 'disabled');;
+                    btn_publish.attr('disabled', 'disabled');
+                    ;
                 }
             });
 
             $("#inp_message").keyup(function (e) {
                 if (e.keyCode == 13) {
                     submitMessage();
-                }else if ($(this).val() == "") {
+                } else if ($(this).val() == "") {
                     $("#btn_sendmessage").attr('disabled', 'disabled');
                 } else {
                     $("#btn_sendmessage").removeAttr('disabled');
@@ -210,13 +278,13 @@
 
             $("#inp_filename").keyup(function () {
                 var searchstr = $(this).val();
-                $('#lg_files').children('a').each( function () {
-                   var id = this.id;
-                   if (this.id.toLowerCase().indexOf(searchstr) >= 0) {
-                       $(this).show();
-                   } else {
-                       $(this).hide();
-                   }
+                $('#lg_files').children('a').each(function () {
+                    var id = this.id;
+                    if (this.id.toLowerCase().indexOf(searchstr) >= 0) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
                 });
             });
 
@@ -227,42 +295,44 @@
     </script>
 
     <nav class="navbar navbar-static-top navbar-default" role="navigation">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-navbar-collapse" aria-expanded="false">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                  </button>
-                <a class="navbar-brand" href="#">
-                    Serval Web Client
-                </a>
-            </div>
-            <div class="collapse navbar-collapse" id="bs-navbar-collapse">
-                <ul class="nav navbar-nav pull-left" id="serval_tabs" name="serval_tabs" role="tablist">
-                    <li role="presentation" class="active"><a href="#info" data-toggle="tab">Info</a></li>
-                    <li role="presentation"><a href="#meshms" data-toggle="tab">MeshMS</a></li>
-                    <li role="presentation"><a href="#rhizome" data-toggle="tab">Rhizome</a></li>
-                    <li role="presentation"><a href="#keyring" data-toggle="tab">Keyring</a></li>
-                </ul>
-            </div>
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#bs-navbar-collapse" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">
+                Serval Web Client
+            </a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-navbar-collapse">
+            <ul class="nav navbar-nav pull-left" id="serval_tabs" name="serval_tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#info" data-toggle="tab">Info</a></li>
+                <li role="presentation"><a href="#meshms" data-toggle="tab">MeshMS</a></li>
+                <li role="presentation"><a href="#rhizome" data-toggle="tab">Rhizome</a></li>
+                <li role="presentation"><a href="#keyring" data-toggle="tab">Keyring</a></li>
+            </ul>
+        </div>
     </nav>
     <div class="container" role="main">
         <div id="serval_id" name="serval_id" hidden>{{ id }}</div>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane active" id="info">
                 <div class="col-lg-7 col-md-7 col-sm-7 col-centered">
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Info</h3>
-                    </div>
-                    <div class="panel-body">
-                        <ul class="list-group">
-                            <li class="list-group-item text-right list-group-item-ellipsis"><span class="pull-left"><strong>SID</strong></span>{{ id }}</li>
-                        </ul>
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">Info</h3>
+                        </div>
+                        <div class="panel-body">
+                            <ul class="list-group">
+                                <li class="list-group-item text-right list-group-item-ellipsis"><span class="pull-left"><strong>SID</strong></span>{{ id }}
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                    </div>
             </div>
             <div role="tabpanel" class="tab-pane" id="meshms">
                 <div class="col-lg-3 col-md-3 col-sm-3">
@@ -288,7 +358,10 @@
                                 <div class="input-group" id="messages" name="messages">
                                     <input class="form-control" type="text" id="inp_message" name="inp_message">
                                     <span class="input-group-btn">
-                                        <input class="btn btn-sm btn-default" type="button" id="btn_sendmessage" name="btn_sendmessage" value="Send" disabled="true">
+                                        <button class="btn btn-sm btn-default" type="button" id="btn_sendmessage"
+                                               name="btn_sendmessage" value="Send" disabled="true">
+                                            <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
+                                        </button>
                                     </span>
                                 </div>
                             </div>
@@ -305,21 +378,26 @@
                         <div class="form-group-sm">
                             <div class="col-sm4" id="file_list" name="file_list">
                                 <div class="input-group" id="search" name="search">
-                                    <input class="form-control" type="text" id="inp_filename" name="inp_filename" placeholder="Search for a file...">
+                                    <input class="form-control" type="text" id="inp_filename" name="inp_filename"
+                                           placeholder="Search for a file...">
                                     <span class="input-group-btn">
-                                        <input class="btn btn-sm btn-default" type="button" id="btn_clearsearchfile" name="btn_clearsearchfile" value="Clear">
+                                        <input class="btn btn-sm btn-default" type="button" id="btn_clearsearchfile"
+                                               name="btn_clearsearchfile" value="Clear">
                                     </span>
                                 </div>
                                 <div class="list-group list-group-scrollable" id="lg_files" name="lg_files"></div>
-                                <form class="input-group" id="publish_file" name="publish_file" method="POST" enctype="multipart/form-data">
+                                <form class="input-group" id="publish_file" name="publish_file" method="POST"
+                                      enctype="multipart/form-data">
                                     <span class="input-group-btn">
                                         <span class="btn btn-sm btn-primary btn-file">
                                             Browse<input id="btn_selectfile" name="btn_selectfile" type="file">
                                         </span>
                                     </span>
-                                    <input id="txt_filename" name="txt_filename" type="text" class="form-control" placeholder="Select a file to publish" readonly>
+                                    <input id="txt_filename" name="txt_filename" type="text" class="form-control"
+                                           placeholder="Select a file to publish" readonly>
                                     <span class="input-group-btn">
-                                        <input class="btn btn-sm btn-default" type="button" id="btn_publishfile" name="btn_publishfile" value="Publish" disabled="true">
+                                        <input class="btn btn-sm btn-default" type="button" id="btn_publishfile"
+                                               name="btn_publishfile" value="Publish" disabled="true">
                                     </span>
                                 </form>
                             </div>
@@ -327,7 +405,21 @@
                     </div>
                 </div>
             </div>
-            <div role="tabpanel" class="tab-pane" id="keyring">keys</div>
+            <div role="tabpanel" class="tab-pane" id="keyring">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Keyring</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group-sm">
+                            <div class="col-sm4" id="identities_list" name="identities_list">
+                                <div class="list-group list-group-scrollable" id="lg_identities"
+                                     name="lg_identities"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div id="infobox" class="navbar-fixed-bottom fade in">
