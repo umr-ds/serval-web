@@ -1,6 +1,6 @@
 function reload_messages(sender, recipient) {
-    var username = "peter";
-    var password = "venkman";
+    var username = "pum";
+    var password = "pum123";
     return $.ajax({
         type: "GET",
         url: "http://localhost:4110/restful/meshms/" + recipient + "/" + sender + "/messagelist.json",
@@ -12,8 +12,8 @@ function reload_messages(sender, recipient) {
 }
 
 function load_new_messages(sender, recipient, token) {
-    var username = "peter";
-    var password = "venkman";
+    var username = "pum";
+    var password = "pum123";
     return $.ajax({
         type: "GET",
         url: "http://localhost:4110/restful/meshms/" + recipient + "/" + sender + "/newsince/" + token + "/messagelist.json",
@@ -25,8 +25,8 @@ function load_new_messages(sender, recipient, token) {
 }
 
 function send_message(sender, recipient, message) {
-    var username = 'peter';
-    var password = 'venkman';
+    var username = 'pum';
+    var password = 'pum123';
     var url = "http://localhost:4110/restful/meshms/" + sender + "/" + recipient + "/sendmessage";
     var params = new FormData();
     params.append("message", new Blob([message], {type: "text/plain; charset=utf-8"}));

@@ -5,8 +5,8 @@ function load_keyring(pin) {
         url += "?pin=" + pin;
     }
 
-    var username = 'peter';
-    var password = 'venkman';
+    var username = 'pum';
+    var password = 'pum123';
     return $.ajax({
         type: "GET",
         url: url,
@@ -31,8 +31,8 @@ function set_sid_details(sid, pin, did, name) {
         url += "?pin=" + pin;
     }
 
-    var username = 'peter';
-    var password = 'venkman';
+    var username = 'pum';
+    var password = 'pum123';
     return $.ajax({
         type: "GET",
         url: url,
