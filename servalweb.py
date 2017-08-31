@@ -33,7 +33,7 @@ def serval_web_client():
 
 @app.route('/restful/rhizome/<string:id>/<string:name>')
 def get_file(id, name):
-    data = requests.get('http://peter:venkman@localhost:4110/restful/rhizome/' + id + '/decrypted.bin').content
+    data = requests.get('http://pum:pum123@localhost:4110/restful/rhizome/' + id + '/decrypted.bin').content
     return send_file(io.BytesIO(data), as_attachment=True, attachment_filename=name)
 
 
